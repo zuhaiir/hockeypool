@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+  <style>
+    *{
+        font-family: sans-serif;
+    }
+    .circled{
+        border: 1px solid red;
+    }
+  </style>
+  <body style="display: flex; flex-direction: column; align-items: center;">
+    <div style="display:flex">
+        <img style="width:50px" src="logo.jpg" alt="" srcset="">
+        <div style="margin: 0 10px; border: 1px solid black; border-radius: 10px; text-align: center; text-transform: uppercase;">
+            <p style="margin: 10px 5px;">Trinity-Placentia Minor Hockey Association <br \> Box 666, Blaketown, NL A0B 1C0</p>
+        </div>
+        <img style="width:50px" src="logo.jpg" alt="" srcset=""></div>
+    <div class='grid-container' id='mydiv' style="display: flex; flex-direction: column; align-items: center; max-width: 700px;">
+    </div>  
+   
+    <script type="text/babel">
+        function getThisFridayDate() {
+            var dayOfWeek = 5;//friday
+            var date = new Date();
+            var diff = date.getDay() - dayOfWeek;
+            if (diff > 0) {
+                date.setDate(date.getDate() + 6);
+            }
+            else if (diff < 0) {
+                date.setDate(date.getDate() - diff)
+            }
+            return date;
+        }
+        const friday = getThisFridayDate();
+        const saturday = new Date(friday);
+        saturday.setDate(friday.getDate() + 1);
+        const sunday = new Date(saturday);
+        sunday.setDate(saturday.getDate() + 1);
+
+        class Pool extends React.Component {
+            state = {
+                pool: []
+            };
+            componentDidMount(){
+                fetch('http://143.42.6.247/api/collections/pool/records')
+                    .then(res => res.json())
+                    .then(data => this.setState({pool: data.items}));
+            }
+            render() {
+                return (
+                    <>
+                    <h2>Week 11</h2>
+                    <div style={{display:'flex', justifyContent:'space-between'}}>Name: <input type="text" /> Phone#:<input type="tel" /></div>
+                    <div style={{textAlign:'center'}}>Circle the team you think will win the game. Each correct prediction is worth one point. The person with the most points wins the pot.</div>
+                    <div style={{display: 'flex'}}>
+                        <Column heading = {friday.toLocaleString(undefined,{weekday:'long', month:'long', day:'numeric'})} items = {this.state.pool.filter(game => new Date(game.match_date).getDay() === 5)}/>
+                        <Column heading = {saturday.toLocaleString(undefined,{weekday:'long', month:'long', day:'numeric'})} items ={this.state.pool.filter(game => new Date(game.match_date).getDay() === 6)}/>
+                        <Column heading = {sunday.toLocaleString(undefined,{weekday:'long', month:'long', day:'numeric'})} items ={this.state.pool.filter(game => new Date(game.match_date).getDay() === 0)}/>
+                    </div>
+                    </>);
+            }
+        }
+        
+        class Column extends React.Component {
+            constructor(props) {
+                super(props);
+            }
+            render() {
+                let gameArray = [];
+                for (let i = 0; i < 5; i++) {
+                    gameArray.push(<Game />);
+                }
+                return (<div className='grid-item'style={{border:"1px solid black"}}>
+                    <div style={{borderBottom:"1px solid black", padding:"10px 20px"}}>{this.props.heading}</div>
+                    {this.props.items.map(game => 
+                        <Game away_team={game.away_team} home_team={game.home_team} />
+                    )}
+                    
+                </div>)
+            }
+        }
+        
+        class Game extends React.Component {
+            state = {
+                homewin:null
+            }
+            constructor(props){
+                super(props)
+            }
+            selectHome = () => {
+                console.log('home selected');
+                this.setState({
+                    homewin: true
+                })
+            }
+            selectAway = () => {
+                console.log('away selected');
+                this.setState({
+                    homewin: false
+                })
+                
+            }
+            render() {
+                return <div style={{padding:"10px 20px"}}><span style={{borderRadius:"50%"}} className={!this.state.homewin ? 'circled' : null} onClick={this.selectAway}>{this.props.away_team}</span> at <span style={{borderRadius:"50%"}} onClick={this.selectHome} className={this.state.homewin ? 'circled' : null}>{this.props.home_team}</span></div>
+            }
+        }
+
+        ReactDOM.render(<Pool />, document.getElementById('mydiv'))
+    </script>
+
+  </body>
+</html>
